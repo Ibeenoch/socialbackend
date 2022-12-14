@@ -16,7 +16,7 @@ const userSchema = mongoose.Schema({
     posts:[
            {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Post'
+          ref: 'Posta'
        }
    ],
    profile:{
