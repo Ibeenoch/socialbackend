@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 import express from 'express'
-import Person from '../models/person.js'
+import Userz from '../models/person.js'
 import cookieParser from 'cookie-parser'
 
 export const protect = async(req, res, next) => {
@@ -11,7 +11,7 @@ try {
 console.log(token)
    const decode = jwt.verify(token, process.env.JWT_SECRET)
    console.log(decode)
-   req.user = await Person.findById(decode._id).select('-password')
+   req.user = await Userz.findById(decode._id).select('-password')
    console.log(req.user)
    next()
 } catch (error) {
