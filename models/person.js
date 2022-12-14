@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-const userSchema = mongoose.Schema({
+const usersSchema = mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -29,13 +29,13 @@ validate: [(val) => val.length <= 1, 'only one profile need'],
    followers: [
     {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Userz',
     }
 ],
 following: [
     {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Userz',
     }
 ],
 handle: {
@@ -53,6 +53,6 @@ coverphoto: {
 },{
     timestamps: true,
 })
-const User = mongoose.model('User', userSchema)
+const Userz = mongoose.model('Userz', usersSchema)
 
-export default User;
+export default Userz;
