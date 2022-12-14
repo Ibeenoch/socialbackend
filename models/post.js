@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import User from './person.js'
+import Userz from './person.js'
 
-const postSchema = new mongoose.Schema({
+const postsSchema = new mongoose.Schema({
 post: String,
 img: {
     url: String,
@@ -11,19 +11,19 @@ img: {
 },
 owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Userz'
 },
 likes: [
      {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Userz'
 }
 ],
 comments: [
     {
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'Userz'
         },    
         comment: {
             type: String,
@@ -35,6 +35,6 @@ comments: [
     timestamps: true,
 })
 
-const Posta = mongoose.model('Posta', postSchema)
+const Posta = mongoose.model('Posta', postsSchema)
 
 export default Posta;
