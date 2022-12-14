@@ -2,10 +2,10 @@
   "name": "socialapp",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "indexes.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon serverApp.js",
+    "start": "nodemon indexes.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "ibewunjo enoch",
