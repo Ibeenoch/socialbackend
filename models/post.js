@@ -35,6 +35,6 @@ comments: [
     timestamps: true,
 })
 
-const Post = mongoose.model('Post', postSchema)
+const Posta = mongoose.model('Posta', postSchema)
 
-export default Post;
+export default Posta;
