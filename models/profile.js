@@ -1,40 +1,33 @@
 import mongoose from 'mongoose'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import User from './person.js'
+import Userz from './person.js';
+import Posta from './post.js';
 
-const postSchema = new mongoose.Schema({
-post: String,
-img: {
-    url: String,
-    public_id: String,
-},
-owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-},
-likes: [
-     {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-}
-],
-comments: [
-    {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
-        },    
-        comment: {
-            type: String,
-            required: true
-        },
-    }
-]
-},{
-    timestamps: true,
+ 
+const profilesSchema = mongoose.Schema({
+    handle: {
+        type: String,
+    },
+    bio: String,
+    profilepics:  {
+        url: String,
+        public_id: String,
+    },
+    coverphoto: {
+        url: String,
+        public_id: String,
+    },
+    location: {
+        type: String,
+        default: 'the Earth'
+    },
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Userz',
+    },
+}, {
+    timestamps: true
 })
 
-const Post = mongoose.model('Post', postSchema)
+const Profiles = mongoose.model('Profiles', profilesSchema)
 
-export default Post;
+export default Profiles;
