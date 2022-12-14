@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
-import Person from '../models/person.js'
-import ModelPost from '../models/post.js'
+import Userz from '../models/person.js'
+import Posta from '../models/post.js'
 import jwt from 'jsonwebtoken'
 import cookie from 'cookie-parser'
-import Profile from '../models/profile.js'
+import Profiles from '../models/profile.js'
 
 
 export const registerUser = async (req, res) =>{
@@ -18,7 +18,7 @@ export const registerUser = async (req, res) =>{
             res.status(400).json({message:  'please add all fields'})
         }
 
-        const userExist = await Person.findOne({ email })
+        const userExist = await Userz.findOne({ email })
         if(userExist){
             res.status(400).json({message:  'user already exist'})
         }
@@ -28,7 +28,7 @@ export const registerUser = async (req, res) =>{
         const hashPassword = await bcrypt.hash(password, salt)
 
 
-        const user = await Person.create({
+        const user = await Userz.create({
             name, 
             email,
             password: hashPassword,
@@ -61,7 +61,7 @@ export const login = async (req, res) => {
             throw new Error('please include your email and password')
         }
          
-        const user = await Person.findOne({ email })
+        const user = await Userz.findOne({ email })
 
         if(!user){
             res.status(400)
@@ -107,16 +107,16 @@ export const deleteUser = async(req, res) => {
 console.log('deleted user')
 
     try {
-        const user = await Person.findById(req.user._id).select('-password')
+        const user = await Userz.findById(req.user._id).select('-password')
 
         const post = user.posts;
         
         for( let i=0; i<post.length; i++){
             console.log(post)
-            await ModelPost.findById(post[i]).remove()
+            await Posta.findById(post[i]).remove()
         }
         console.log('Post deleted')
-        const profile = await Profile.findOne({ owner: req.user._id })
+        const profile = await Profiles.findOne({ owner: req.user._id })
 
        await profile.remove()
        console.log('profile deleted')
@@ -137,7 +137,7 @@ console.log('deleted user')
 
 export const allUser = async(req, res) => {
     try {
-       const allusers = await Person.find().select('-password').populate('profile').exec()
+       const allusers = await Userz.find().select('-password').populate('profile').exec()
 console.log(allusers)
        res.status(200).json(allusers)
     } catch (error) {
@@ -148,7 +148,7 @@ console.log(allusers)
 
 export const findFollowing = async(req, res) => {
     try {
-       const user = await Person.find({ _id: req.user._id }).select('-password').populate('following').exec()
+       const user = await Userz.find({ _id: req.user._id }).select('-password').populate('following').exec()
 console.log(user)
        res.status(200).json(user)
     } catch (error) {
@@ -159,7 +159,7 @@ console.log(user)
 
 export const findFollowers = async(req, res) => {
     try {
-       const user = await Person.find({ _id: req.user._id }).select('-password').populate('followers').exec()
+       const user = await Userz.find({ _id: req.user._id }).select('-password').populate('followers').exec()
 console.log(user)
        res.status(200).json(user)
     } catch (error) {
@@ -170,7 +170,7 @@ console.log(user)
 
 export const findAUser = async(req, res) => {
     try {
-       const user = await Person.find({ _id: req.params.id }).select('-password').exec()
+       const user = await Userz.find({ _id: req.params.id }).select('-password').exec()
 console.log(user)
        res.status(200).json(user)
     } catch (error) {
@@ -182,14 +182,14 @@ console.log(user)
 export const followAndUnfollowUser = async(req, res) => {
     try {
 
-        const user = await Person.findById(req.user._id).select('-password')
+        const user = await Userz.findById(req.user._id).select('-password')
 
         if(req.params.id.toString() === req.user._id.toString()){
             res.status(405)
             throw new Error('not allowed')
         }
 
-        const otheruser = await Person.findById(req.params.id) //user._id
+        const otheruser = await Userz.findById(req.params.id) //user._id
 
         if(!otheruser){
             res.status(400)
