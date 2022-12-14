@@ -1,277 +1,371 @@
-import express from 'express'
-import { protect } from '../middleware/authmiddleware.js'
-import multer from 'multer'
-import Userz from '../models/person.js'
-import Profiles from '../models/profile.js'
-import cloudinaryz from '../middleware/clodinary.js'
+import express from 'express';
+import multer from 'multer';
+import Posta from '../models/post.js';
+import Userz from '../models/person.js';
+import { protect } from '../middleware/authmiddleware.js';
+import Profiles from '../models/profile.js';
+import uploadImage from '../middleware/multer.js';
 import cloudinary from 'cloudinary'
 import dotenv from 'dotenv'
-import uploadImage from '../middleware/multer.js'
-import { uploads } from '../middleware/clodinary.js'
-import fs from 'fs'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
 
 dotenv.config()
 
-const profileRouter = express.Router()
+ cloudinary.config({ 
+    cloud_name: process.env.CLOUD_NAME, 
+    api_key: process.env.API_KEY, 
+    api_secret: process.env.API_SECRET
+  });
 
 
-//create user profile
 
-profileRouter.route('/create').post( protect , uploadImage.array('image', 5), async (req, res, next) => {
 
+
+const postRouter = express.Router()
+
+postRouter.route('/post/create').post( protect, uploadImage.single('img'), async (req, res) => {
+  console.log(req.file)
+  console.log(req.body)
+  try {
+
+    if(!req.file){
+        const postz = await Posta.create({
+            post: req.body.post,
+            owner: req.user._id
+        })
+        console.log(postz)
+ 
+     const user = await UserzfindById(req.user._id)
+ 
+     user.posts.push(postz._id)
+     await user.save()
+        res.status(201).json({
+            postz
+         })
+    }
+   
+    if(req.file){
+        const result = await cloudinary.uploader.upload(req.file.path)
+        const postz = await Posta.create({
+                   post: req.body.post,
+                   img: {
+                       url: result.secure_url,
+                       public_id: result.public_id
+                   },
+                   owner: req.user._id
+               })
+               console.log(postz)
+        
+            const user = await Userz.findById(req.user._id)
+        
+            user.posts.push(postz._id)
+            await user.save()
+               res.status(201).json({
+                   postz
+                })   
+    }
+ 
+   } catch (error) {
+       console.log({ message: error.message})
+   }
+} )
+
+//update post
+postRouter.route('/postupdate/:id').put(protect, uploadImage.single('img'), async (req, res, next) =>{
     try {
        
-            console.log(req.files)
-            const {handle, bio, location} = req.body
-            console.log({handle, bio, location})
-            console.log(req.user._id)
-    
-            const uploader = async(path) => await uploads(path, 'Images')
-            const urls = []
-            if(req.method === 'POST'){
-                
-                //req.files is an array
-                const files = req.files
-                
-                for(const file of files){
-                    const { path } = file
-    
-                    const newPath = await uploader(path)
-                   
-                   urls.push(newPath)
-    
-                   fs.unlinkSync(path)
-               }  
-                 console.log(urls)
-                 console.log({handle, bio, location})
-    
-                     
-               
-                 
-                 if(!urls[0] && !urls[1]){
-                    const pro = await Profiles.create({
-                        handle: req.body.handle,
-                        bio: req.body.bio,
-                        location: req.body.location,
-                        profilepics: {
-                           url: 'https://res.cloudinary.com/ibeenoch/image/upload/v1670541027/ghgelknzzv5rrchicf5k.png',
-                           public_id: 'ghgelknzzv5rrchicf5k',
-                       },
-                       coverphoto: {
-                          url: 'https://res.cloudinary.com/ibeenoch/image/upload/v1670541027/ghgelknzzv5rrchicf5k.png',
-                          public_id: 'ghgelknzzv5rrchicf5k',
-                      },
-                       owner: req.user._id
-                    })
-                    console.log(pro)
-                    const user = await Userz.findById(req.user._id)
-                    user.profile.push(pro._id)
-                    user.handle = pro.handle
-                    user.bio = pro.bio
-                   console.log(user.profilepics)
-                    user.profilepics.url = pro.profilepics.url
-                    user.profilepics.public_id = pro.profilepics.public_id
-                    user.coverphoto.url = pro.coverphoto.url
-                    user.coverphoto.public_id = pro.coverphoto.public_id
-                    await user.save()
-                    console.log(user.profilepics)
-                    console.log(pro.profilepics)
-       
-                       res.status(200).json({
-                           message: 'profile created',
-                          pro,
-                          user
-                       })
-                 }
-                    
-                 if(urls[0] && urls[1]){
-                        const pro = await Profiles.create({
-                            handle: req.body.handle,
-                            bio: req.body.bio,
-                            location: req.body.location,
-                            profilepics: {
-                               url: urls[0].url,
-                               public_id: urls[0].id,
-                           },
-                           coverphoto: {
-                              url: urls[1].url,
-                              public_id: urls[1].id,
-                          },
-                           owner: req.user._id
-                        })
-                        console.log(pro)
-                        const user = await Userz.findById(req.user._id)
-                        user.profile.push(pro._id)
-                        user.handle = pro.handle
-                        user.bio = pro.bio
-                       console.log(user.profilepics)
-                        user.profilepics.url = pro.profilepics.url
-                        user.profilepics.public_id = pro.profilepics.public_id
-                        user.coverphoto.url = pro.coverphoto.url
-                        user.coverphoto.public_id = pro.coverphoto.public_id
-                        await user.save()
-                        console.log(user.profilepics)
-                        console.log(pro.profilepics)
-           
-                           res.status(200).json({
-                               message: 'profile created',
-                              pro,
-                              user
-                           })
-                     }
+        const oldId = await Posta.findById(req.params.id)
+        console.log(oldId)
+     if(req.file){   
+        console.log(req.file)
+         await cloudinary.uploader.destroy(oldId.img.public_id) 
+        const result = await cloudinary.uploader.upload(req.file.path)
+        const postData = {
+            post: req.body.post || oldId.post ,
+            img:  {
+                url: result.url || oldId.img.url,
+                public_id: result.public_id || oldId.img.public_id,
+            },
+            owner: req.user._id,
+        }
 
-         
-              
-            }else{
-                res.status(405).json({
-                    err: 'image upload not successful',
-                    
-                })
-            }
-        
+        if(oldId.owner.toString() !== req.user._id.toString()){
+            res.status(409)
+            throw new Error('not authorized')
+        }
+       
+        const updatedPost = await Posta.findByIdAndUpdate(req.params.id, postData, {new: true})
+        console.log({updatedPost: updatedPost})
+      
+        res.status(200).json({updatedPost})
+    }else{
+      const result = oldId.img
+       console.log(result)
+       const postData = {
+        post: req.body.post ,
+        owner: req.user._id,
+    }
+
+    if(oldId.owner.toString() !== req.user._id.toString()){
+        res.status(409)
+        throw new Error('not authorized')
+    }
+   
+    const updatedPost = await Posta.findByIdAndUpdate(req.params.id, postData, {new: true})
+    console.log({updatedPost: updatedPost})
+  
+    res.status(200).json({updatedPost})
+    } 
+
     } catch (error) {
-        res.status(500)
-        throw new Error(error.stack)
+        res.status(500).json({ message: error.message})
     }
 })
 
-//get my profile
-profileRouter.route('/me').get( protect, async(req, res) => {
+
+//delete post
+postRouter.route('/deletepost/:id').delete(protect,  async (req, res) =>{
     try {
-        const fetchProfile = await Profiles.find({ owner: req.user._id})
-console.log(fetchProfile)
+
+        const post = await Posta.findById(req.params.id)
+
+        if(post.owner.toString() !== req.user._id.toString()){
+            res.status(409)
+            throw new Error('not authorized')
+        }
+       
+        const deletedPost = await Posta.findByIdAndRemove(req.params.id)
+      
         res.status(200).json({
-            message: 'others profile fetched',
-            fetchProfile,
+            message: 'post deleted',
+             post
+            })
+
+    } catch (error) {
+        res.status(500).json({ message: error.message})
+    }
+})
+
+//get my post and post of following 
+postRouter.route('/allpost').get( protect, async (req, res) => {
+    try {
+        
+        const user = await Userz.findById(req.user._id)
+
+        let ids = [...user.following, user._id]
+
+          
+          console.log(ids)
+        const allPost = await  Posta.find({ owner: {
+            $in: ids,
+        } }).sort({ createdAt: -1 }).populate('owner').exec()
+
+        res.status(200).json({
+            allPost
         })
+    } catch (error) {
+        console.log(error.message)
+    }
+
+})
+
+postRouter.route('/viewallpost').get( protect, async (req, res) => {
+    try {
+       
+        const allPost = await  Posta.find({ }).sort({ createdAt: -1 }).populate('owner').exec()
+
+        res.status(200).json({
+            allPost
+        })
+    } catch (error) {
+        console.log(error.message)
+    }
+
+})
+
+//get each post of your 
+postRouter.route('/post/:id').get( protect, async (req, res) => {
+    try {
+  
+          
+        const allPost = await  Posta.find({ owner: {
+            $in: req.params.id,
+        } }).sort({ createdAt: -1 }).populate('owner').exec()
+         console.log(allPost)
+        res.status(200).json({
+            allPost
+        })
+    } catch (error) {
+        console.log(error.message)
+    }
+
+})
+
+//get my post 
+postRouter.route('/mypost').get( protect, async (req, res) => {
+    try {
+  
+          
+        const allPost = await  Posta.find({ owner: {
+            $in: req.user._id,
+        } }).sort({ createdAt: -1 }).populate('owner').exec()
+         console.log(allPost)
+        res.status(200).json({
+            allPost
+        })
+    } catch (error) {
+        console.log(error.message)
+    }
+
+})
+
+//like and unlike post
+postRouter.route('/post/likes/:id').put(protect, async(req, res) => {
+    try {
+        const user = await Userz.findById(req.user._id)
+        const post = await Posta.findById(req.params.id)
+ 
+
+        if(post.likes.includes(user._id)){
+            const findIndex = post.likes.indexOf(user._id)
+            post.likes.splice(findIndex, 1)
+            await post.save()
+            const  liked = post.likes
+            res.status(200).json({ post })
+        }else{
+            post.likes.push(user._id)
+            await post.save()
+             const  liked = post.likes
+            res.status(200).json({ post })
+        }
+
+      
     } catch (error) {
         res.status(500)
         throw new Error(error)
     }
 })
 
-profileRouter.route('/').get(protect, async(req, res) => {
+postRouter.route('/comment/:id').post(protect, async (req, res) => {
     try {
-       const allprofile = await Profiles.find({ owner: { $ne: req.user._id }})
-console.log(allprofile)
-       res.status(200).json(allprofile)
-    } catch (error) {
-        res.status(500)
-        throw new Error(error) 
-    }
-}) 
+        console.log(req.body)
+        console.log(req.params.id)
+        const post = await Posta.findById(req.params.id) // not req.user._id because the post should be any post, not just the users post
 
-
-profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async(req, res) => {
-    try {
-      
-            console.log(req.files)
-            console.log(req.body)
-            const uploader = async(path) => await uploads(path, 'Images')
-            const urls = []
-            if(req.method === 'PUT'){
-                
-                //req.files is an array
-                const files = req.files
-                
-                for(const file of files){
-                    const { path } = file
+        if(!post){
+            res.status(404)
+            throw new Error('post no found')
+        }
     
-                    const newPath = await uploader(path)
-                   
-                   urls.push(newPath)
-    
-                   fs.unlinkSync(path)
-               }  
-                 console.log(urls)
-    
-            const profile = await Profiles.findOne({ owner: req.user._id })
-            console.log(profile)
-            if(!profile){
-                res.status(404)
-                throw new Error('profile do not exist')
-            }
-            
-    if(!urls[0] && !urls[1]){
-        const updatedProfile = await Profiles.findByIdAndUpdate(profile._id, {
-            handle: req.body.handle,
-            bio: req.body.bio,
-            location: req.body.location,
-            profilepics: {
-                url: profile.profilepics.url,
-                public_id: profile.profilepics.public_id,
-            },
-            coverphoto: {
-                url: profile.coverphoto.url,
-                public_id: profile.coverphoto.public_id,
-           },
-        }, { new: true })
-
-        console.log(updatedProfile)
-
-        const user = await Userz.findById(req.user._id)
-        user.handle = updatedProfile.handle
-        user.bio = updatedProfile.bio
-        user.profilepics.url = updatedProfile.profilepics.url
-        user.profilepics.public_id = updatedProfile.profilepics.public_id
-        user.coverphoto.url = updatedProfile.coverphoto.url
-        user.coverphoto.public_id = updatedProfile.coverphoto.public_id
-        await user.save()
-
-        res.status(200).json({
-            message: 'profile updated',
-            updatedProfile,
-        })
-    }
-
-    if(urls[0] && urls[1]){
-        const updatedProfile = await Profiles.findByIdAndUpdate(profile._id, {
-            handle: req.body.handle,
-            bio: req.body.bio,
-            location: req.body.location,
-            profilepics: {
-                url: urls[0].url,
-                public_id: urls[0].id,
-            },
-            coverphoto: {
-               url: urls[1].url,
-               public_id: urls[1].id,
-           },
-        }, { new: true })
-
-        console.log(updatedProfile)
-
-        const user = await Userz.findById(req.user._id)
-        user.handle = updatedProfile.handle
-        user.bio = updatedProfile.bio
-        user.profilepics.url = updatedProfile.profilepics.url
-        user.profilepics.public_id = updatedProfile.profilepics.public_id
-        user.coverphoto.url = updatedProfile.coverphoto.url
-        user.coverphoto.public_id = updatedProfile.coverphoto.public_id
-        await user.save()
-
-        res.status(200).json({
-            message: 'profile updated',
-            updatedProfile,
-        })
-    }
-           
-    
-                
-        }else{
-            res.status(405).json({
-                err: 'image upload not sucessful',
+            post.comments.push({
+               user: req.user._id,
+             comment: req.body.comment,
                 
             })
-        }
+
+            await post.save()
+            console.log(post.comments)
+            res.status(200).json({
+                message: 'comment added',
+               comments: post.comments,
+            })
         
-      
+
+
     } catch (error) {
         res.status(500)
         throw new Error(error)
     }
 })
 
+postRouter.route('/getcomment/:id').get( protect, async (req, res) => {
+    try {
+       
+        const allPost = await  Posta.find({ _id:req.params.id }).sort({ createdAt: -1 }).populate('comments').exec()
+      const comments = allPost.comments
+        res.status(200).json({
+            allPost
+        })
+    } catch (error) {
+        console.log(error.message)
+    }
+
+})
+
+postRouter.route('/updatecomment/:id').put(protect, async(req, res) => {
+    try {
+        const post = await Posta.findById(req.params.id) // not req.user._id because the post should be any post, not just the users post
+
+        if(!post){
+            res.status(404)
+            throw new Error('post no found')
+        }
+
+        let commentIndex = -1;
+
+        post.comments.forEach((element, index) => {
+            if(element.user.toString() === req.user._id.toString() && element._id.toString() === req.body.commentId){ //post.comments[index]._id
+                commentIndex = index
+            }
+        })
+        console.log(commentIndex)
+
+        if(commentIndex !== -1){
+            post.comments[commentIndex].comment = req.body.comment
+            await post.save()
+
+            res.status(200).json({
+                message: 'comment updated',
+                post
+            })
+        }
+    } catch (error) {
+        res.status(500)
+        throw new Error(error)
+    }
+})
+
+postRouter.route('/deletecomment/:id').delete(protect, async(req, res) => {
+    try {
+        const post = await Posta.findById(req.params.id)
+
+        if(!post){
+            res.status(404)
+            throw new Error('post no found')
+        }
+
+//if i am the owner of the post i should be able to delete any comment without authenticating
+        if(post.owner.toString() === req.user._id){
+            post.comments.forEach((element, index) => {
+                if(element._id.toString() === req.body.commentId){
+                return  post.comments.splice(index, 1)
+                }
+            })
+
+            await post.save()
+            res.status(200).json({
+                message: 'others comment deleted',
+                post,
+            })
+        }else{ //if i am not the owner of the post i should be able to delete only my comment with authenticating
+            post.comments.forEach((element, index) => {
+                if(element.user.toString() === req.body.userId &&  element._id.toString() === req.body.commentId){ //req,body.
+                    return post.comments.splice(index, 1)
+                }
+            })
+            await post.save()
+            res.status(200).json({
+                message: 'my comment deleted',
+                post,
+            }) 
+        }
 
 
-export default profileRouter
+
+    } catch (error) {
+        res.status(500)
+        throw new Error(error)  
+    }
+})
+
+export default postRouter;
