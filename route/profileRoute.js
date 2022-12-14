@@ -1,8 +1,8 @@
 import express from 'express'
 import { protect } from '../middleware/authmiddleware.js'
 import multer from 'multer'
-import Person from '../models/person.js'
-import Profile from '../models/profile.js'
+import Userz from '../models/person.js'
+import Profiles from '../models/profile.js'
 import cloudinaryz from '../middleware/clodinary.js'
 import cloudinary from 'cloudinary'
 import dotenv from 'dotenv'
@@ -49,7 +49,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                
                  
                  if(!urls[0] && !urls[1]){
-                    const pro = await Profile.create({
+                    const pro = await Profiles.create({
                         handle: req.body.handle,
                         bio: req.body.bio,
                         location: req.body.location,
@@ -64,7 +64,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                        owner: req.user._id
                     })
                     console.log(pro)
-                    const user = await Person.findById(req.user._id)
+                    const user = await Userz.findById(req.user._id)
                     user.profile.push(pro._id)
                     user.handle = pro.handle
                     user.bio = pro.bio
@@ -85,7 +85,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                  }
                     
                  if(urls[0] && urls[1]){
-                        const pro = await Profile.create({
+                        const pro = await Profiles.create({
                             handle: req.body.handle,
                             bio: req.body.bio,
                             location: req.body.location,
@@ -100,7 +100,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                            owner: req.user._id
                         })
                         console.log(pro)
-                        const user = await Person.findById(req.user._id)
+                        const user = await Userz.findById(req.user._id)
                         user.profile.push(pro._id)
                         user.handle = pro.handle
                         user.bio = pro.bio
@@ -138,7 +138,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
 //get my profile
 profileRouter.route('/me').get( protect, async(req, res) => {
     try {
-        const fetchProfile = await Profile.find({ owner: req.user._id})
+        const fetchProfile = await Profiles.find({ owner: req.user._id})
 console.log(fetchProfile)
         res.status(200).json({
             message: 'others profile fetched',
@@ -152,7 +152,7 @@ console.log(fetchProfile)
 
 profileRouter.route('/').get(protect, async(req, res) => {
     try {
-       const allprofile = await Profile.find({ owner: { $ne: req.user._id }})
+       const allprofile = await Profiles.find({ owner: { $ne: req.user._id }})
 console.log(allprofile)
        res.status(200).json(allprofile)
     } catch (error) {
@@ -185,7 +185,7 @@ profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async
                }  
                  console.log(urls)
     
-            const profile = await Profile.findOne({ owner: req.user._id })
+            const profile = await Profiles.findOne({ owner: req.user._id })
             console.log(profile)
             if(!profile){
                 res.status(404)
@@ -193,7 +193,7 @@ profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async
             }
             
     if(!urls[0] && !urls[1]){
-        const updatedProfile = await Profile.findByIdAndUpdate(profile._id, {
+        const updatedProfile = await Profiles.findByIdAndUpdate(profile._id, {
             handle: req.body.handle,
             bio: req.body.bio,
             location: req.body.location,
@@ -209,7 +209,7 @@ profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async
 
         console.log(updatedProfile)
 
-        const user = await Person.findById(req.user._id)
+        const user = await Userz.findById(req.user._id)
         user.handle = updatedProfile.handle
         user.bio = updatedProfile.bio
         user.profilepics.url = updatedProfile.profilepics.url
@@ -225,7 +225,7 @@ profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async
     }
 
     if(urls[0] && urls[1]){
-        const updatedProfile = await Profile.findByIdAndUpdate(profile._id, {
+        const updatedProfile = await Profiles.findByIdAndUpdate(profile._id, {
             handle: req.body.handle,
             bio: req.body.bio,
             location: req.body.location,
@@ -241,7 +241,7 @@ profileRouter.route('/update').put(protect, uploadImage.array('image', 3), async
 
         console.log(updatedProfile)
 
-        const user = await Person.findById(req.user._id)
+        const user = await Userz.findById(req.user._id)
         user.handle = updatedProfile.handle
         user.bio = updatedProfile.bio
         user.profilepics.url = updatedProfile.profilepics.url
