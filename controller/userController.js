@@ -180,6 +180,23 @@ console.log(user)
     }
 }
 
+    
+  export const findMe = async(req, res) => {
+      try {
+       const user = await Userz.find({ _id: req.params.id }).select('-password').exec()
+       console.log(user);
+       const token = generateToken(user._id);
+ 
+       res.status(200).json({
+           user,
+           token,
+       })
+    } catch (error) {
+        res.status(500)
+        throw new Error(error) 
+    }
+}
+
 export const followAndUnfollowUser = async(req, res) => {
     try {
 
