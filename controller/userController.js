@@ -185,7 +185,7 @@ console.log(user)
       try {
        const user = await Userz.find({ _id: req.params.id }).select('-password').exec()
        console.log(user);
-       const token = generateToken(user._id);
+       const token = req.query.token;
  
        res.status(200).json({
            user: user[0],
