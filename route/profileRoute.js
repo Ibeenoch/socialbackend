@@ -62,6 +62,8 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                         })
                         console.log(pro)
                         const user = await Userz.findById(req.user._id)
+                        if(user){
+                        console.log("user found");
                         user.profile.push(pro._id)
                         user.handle = pro.handle
                         user.bio = pro.bio
@@ -78,7 +80,9 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                                message: 'profile created',
                               pro,
                               user
-                           })
+                           });
+                            
+                        }
                      }else{
                     const pro = await Profiles.create({
                         handle: req.body.handle,
