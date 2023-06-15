@@ -46,9 +46,41 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                  console.log({handle, bio, location})
     
                      
-               
-                 
-                 if(!urls[0] && !urls[1]){
+                     if(urls[0] && urls[1]){
+                        const pro = await Profiles.create({
+                            handle: req.body.handle,
+                            bio: req.body.bio,
+                            location: req.body.location,
+                            profilepics: {
+                               url: urls[0].url,
+                               public_id: urls[0].id,
+                           },
+                           coverphoto: {
+                              url: urls[1].url,
+                              public_id: urls[1].id,
+                          },
+                           owner: req.user._id
+                        })
+                        console.log(pro)
+                        const user = await Userz.findById(req.user._id)
+                        user.profile.push(pro._id)
+                        user.handle = pro.handle
+                        user.bio = pro.bio
+                       console.log(user.profilepics)
+                        user.profilepics.url = pro.profilepics.url
+                        user.profilepics.public_id = pro.profilepics.public_id
+                        user.coverphoto.url = pro.coverphoto.url
+                        user.coverphoto.public_id = pro.coverphoto.public_id
+                        await user.save()
+                        console.log(user.profilepics)
+                        console.log(pro.profilepics)
+           
+                           res.status(200).json({
+                               message: 'profile created',
+                              pro,
+                              user
+                           })
+                     }else{
                     const pro = await Profiles.create({
                         handle: req.body.handle,
                         bio: req.body.bio,
@@ -84,41 +116,7 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                        })
                  }
                     
-                 if(urls[0] && urls[1]){
-                        const pro = await Profiles.create({
-                            handle: req.body.handle,
-                            bio: req.body.bio,
-                            location: req.body.location,
-                            profilepics: {
-                               url: urls[0].url,
-                               public_id: urls[0].id,
-                           },
-                           coverphoto: {
-                              url: urls[1].url,
-                              public_id: urls[1].id,
-                          },
-                           owner: req.user._id
-                        })
-                        console.log(pro)
-                        const user = await Userz.findById(req.user._id)
-                        user.profile.push(pro._id)
-                        user.handle = pro.handle
-                        user.bio = pro.bio
-                       console.log(user.profilepics)
-                        user.profilepics.url = pro.profilepics.url
-                        user.profilepics.public_id = pro.profilepics.public_id
-                        user.coverphoto.url = pro.coverphoto.url
-                        user.coverphoto.public_id = pro.coverphoto.public_id
-                        await user.save()
-                        console.log(user.profilepics)
-                        console.log(pro.profilepics)
            
-                           res.status(200).json({
-                               message: 'profile created',
-                              pro,
-                              user
-                           })
-                     }
 
          
               
