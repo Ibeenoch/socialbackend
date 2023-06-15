@@ -188,7 +188,7 @@ console.log(user)
        const token = generateToken(user._id);
  
        res.status(200).json({
-           user,
+           user: user[0],
            token,
        })
     } catch (error) {
