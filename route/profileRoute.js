@@ -67,14 +67,13 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
                         user.profile.push(pro._id)
                         user.handle = pro.handle
                         user.bio = pro.bio
-                       console.log(user.profilepics)
+                    
                         user.profilepics.url = pro.profilepics.url
                         user.profilepics.public_id = pro.profilepics.public_id
                         user.coverphoto.url = pro.coverphoto.url
                         user.coverphoto.public_id = pro.coverphoto.public_id
                         await user.save()
                         console.log(user.profilepics)
-                        console.log(pro.profilepics)
            
                            res.status(200).json({
                                message: 'profile created',
