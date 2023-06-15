@@ -6,6 +6,9 @@ import jwt from 'jsonwebtoken'
 import cookie from 'cookie-parser'
 import Profiles from '../models/profile.js'
 
+const generateToken = (_id) => {
+return jwt.sign( {_id}, process.env.JWT_SECRET)
+}
 
 export const registerUser = async (req, res) =>{
     
@@ -47,9 +50,7 @@ export const registerUser = async (req, res) =>{
     }
 }
 
-const generateToken = (_id) => {
-return jwt.sign( {_id}, process.env.JWT_SECRET)
-}
+
 
 export const login = async (req, res) => {
     try {
