@@ -1,5 +1,5 @@
 import express from 'express'
-import { allUser, deleteUser, followAndUnfollowUser, login, logout, registerUser, findFollowing, findFollowers, findAUser } from '../controller/userController.js';
+import { allUser, deleteUser, followAndUnfollowUser, login, logout, registerUser, findFollowing, findFollowers, findAUser, findMe } from '../controller/userController.js';
 import { protect } from '../middleware/authmiddleware.js';
 
 const userRouter = express.Router()
@@ -13,7 +13,7 @@ userRouter.route('/following').get(protect, findFollowing)
 userRouter.route('/followers').get(protect, findFollowers)
 userRouter.route('/logout').get(protect, logout)
 userRouter.route('/findperson/:id').get(protect, findAUser)
-
+userRouter.route('/findme/:id').get(protect, findMe)
 
 
 export default userRouter;
