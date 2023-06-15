@@ -42,9 +42,8 @@ profileRouter.route('/create').post( protect , uploadImage.array('image', 5), as
     
                    fs.unlinkSync(path)
                }  
-                 console.log(urls)
-                 console.log({handle, bio, location})
-    
+                 console.log('Urls: ', urls)
+            
                      
                      if(urls[0] && urls[1]){
                         const pro = await Profiles.create({
