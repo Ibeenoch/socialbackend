@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-
+// model of user
 const usersSchema = mongoose.Schema({
     name: {
         type: String,
